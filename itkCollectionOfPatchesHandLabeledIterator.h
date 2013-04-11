@@ -57,8 +57,8 @@ namespace itk
     typedef typename TInputImage::RegionType   RegionType;
     typedef ImageFileReader< TInputImage > ImageReaderType;
     typedef RegionOfInterestImageFilter< TInputImage, TOutputImage > PatchExtractorType;
-    typedef Function::Minimum<float,float,float> FMinType;
-    typedef Function::Maximum<float,float,float> FMaxType;
+    typedef Functor::Minimum<float,float,float> FMinType;
+    typedef Functor::Maximum<float,float,float> FMaxType;
     typedef Functor::Cast< float, int > F2ICast;
     typedef typename PatchExtractorType::OutputImageType PatchExtractorOutputType;
     typedef typename ImageReaderType::Pointer ImageReaderPointerType;

@@ -25,6 +25,7 @@ Written by Owen Carmichael, January 2007
 #include "itkIndent.h"
 #include "itkImageDuplicator.h"
 #include "itkCollectionOfPatchesHandLabeledIterator.h"
+#include "itkAffineTransform.h"
 
 // Convenience typedefs for ITK classes:
 typedef unsigned char PixelType;
@@ -41,8 +42,8 @@ typedef itk::UnaryFunctorImageFilter< FloatImageType, FloatImageType,ImageRescal
 typedef itk::AddImageFilter< FloatImageType, FloatImageType, FloatImageType > ImageAdderType;
 typedef itk::SquaredDifferenceImageFilter< FloatImageType, FloatImageType, FloatImageType > SquaredDifferenceCalculatorType;
 typedef itk::StatisticsImageFilter< FloatImageType > ImageStatisticsCalculatorType;
-typedef itk::Function::Minimum<float,float,float> FMinType;
-typedef itk::Function::Maximum<float,float,float> FMaxType;
+typedef itk::Functor::Minimum<float,float,float> FMinType;
+typedef itk::Functor::Maximum<float,float,float> FMaxType;
 typedef itk::Functor::Cast< float, int > F2ICast;
 typedef itk::ImageDuplicator<FloatImageType> ImagePatchDuplicatorType;
 typedef itk::RescaleIntensityImageFilter<FloatImageType,FloatImageType> IntensityNormalizerType;

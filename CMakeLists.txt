@@ -19,4 +19,4 @@ ENDIF(ITK_FOUND)
 
 ADD_EXECUTABLE(eigen_faces eigen_faces.cxx)
 
-TARGET_LINK_LIBRARIES(eigen_faces ITKCommon ITKIO)
+TARGET_LINK_LIBRARIES(eigen_faces ${ITK_LIBRARIES})
