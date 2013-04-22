@@ -1,20 +1,53 @@
 /*
-This software is property of Owen Carmichael, Chris Schwarz, and the Regents of the University of California.  Do not distribute or copy this software without the consent of Owen Carmichael, Chris Schwarz, and the Regents of the University of California.  All rights reserved.  Copyright ©  2007-2013  Owen Carmichael, Chris Schwarz, and the Regents of the University of California.
+This software is property of Owen Carmichael, Chris Schwarz,
+and the Regents of the University of California.
+Do not distribute or copy this software without the consent of
+Owen Carmichael, Chris Schwarz, and the Regents of the University of California.
+All rights reserved.
+Copyright ©  2007-2013  Owen Carmichael, Chris Schwarz, and the Regents of the University of California.
 
 itkCollectionOfPatchesHandLabeledIterator.h   ---  ECS 189H Homework 1
 January 7, 2007
 
-This file contains the class declaration for itk::CollectionOfPatchesHandLabeledIterator.  The class iterates over a list of image regions that are extracted from images in a directory.  The image regions to be extracted are specified in a text file called ground_truth in the directory.  The first line in ground_truth is a single number: the number of image regions listed in the file.  Each following line in ground_truth specifies a different face region in a particular image.  The format for one line of ground_truth is:
+This file contains the class declaration for itk::CollectionOfPatchesHandLabeledIterator.
+The class iterates over a list of image regions that are extracted from images in a directory.
+The image regions to be extracted are specified in a text file called ground_truth in the directory.
+The first line in ground_truth is a single number: the number of image regions listed in the file.
+Each following line in ground_truth specifies a different face region in a particular image.
+The format for one line of ground_truth is:
 
 <image filename> <left eye x> <left eye y> <right eye x> <right eye y> <nose x> <nose y> <left corner of mouth x> <left corner of mouth y> <center of mouth x> <center of mouth y> <right corner of mouth x> <right corner of mouth y>
 
-For example, "left eye x" and "left eye y" are the X and Y coordinates of the left eye of the face in the image called "image filename."  This class converts each region description into a rectangular image region by taking the bounding box of the face features and adding some extra pixels to the periphery of the bounding box ("padding").  How much padding to add around the face features is controlled by the SetCushionPctX() and SetCushionPctY() methods.  The default for both is .2 (i.e. the patches add a 20% border all around).  If adding the padding to the image patch makes it extend outside the bounds of the image, the padding is cropped off so that the image patch stops at the image boundary.
+For example, "left eye x" and "left eye y" are the X and Y coordinates of the
+left eye of the face in the image called "image filename."
+This class converts each region description into a rectangular image region
+by taking the bounding box of the face features and adding some extra pixels
+to the periphery of the bounding box ("padding").  How much padding to add
+around the face features is controlled by the SetCushionPctX() and SetCushionPctY()
+methods.  The default for both is .2 (i.e. the patches add a 20% border all around).
+If adding the padding to the image patch makes it extend outside the bounds of the
+image, the padding is cropped off so that the image patch stops at the image boundary.
 
-The class instantiates in itk::ImageFileReader to read the images and an itk::RegionOfInterestImageFilter to extract the specified regions.
+The class instantiates in itk::ImageFileReader to read the images and an
+itk::RegionOfInterestImageFilter to extract the specified regions.
 
-Calling SetImagePath() triggers the reading of ground_truth in the specified directory, but regions themselves are not read in from the specified image files until Get() is called.  Changing the position of the iterator by calling GoToBegin(), operator++(), etc just changes which image region is the current one but don't cause the image to be read in from file.  Get() calls the ImageFileReader to read in the image, specifies the rectangular image region based on the entry in ground_truth,  calls the RegionOfInterestImageFilter to extract that region from the image, and returns the region to the user.
+Calling SetImagePath() triggers the reading of ground_truth in the specified directory,
+but regions themselves are not read in from the specified image files until Get() is called.
+Changing the position of the iterator by calling GoToBegin(), operator++(), etc just changes
+which image region is the current one but don't cause the image to be read in from file.
+Get() calls the ImageFileReader to read in the image, specifies the rectangular image
+region based on the entry in ground_truth,  calls the RegionOfInterestImageFilter to
+extract that region from the image, and returns the region to the user.
 
-Implementation:  Currently, the iterator is implemented as a simple array of structs, each of which stores information on a particular image region, and an integer index that points to an element in the array.  Methods that change the iterator position (operator++(), operator--(), operator+=(), operator-=(), GoToBegin(), GoToPosition()) just change the value of the array index in obvious ways.  Being at the end of the list of regions-- being PAST the final region in the list, not AT the final region in the list-- is represented by making the array index one greater than the maximal index of image regions in the array.  If that's where the iterator is, IsAtEnd() returns true.  GoToEnd() puts the iterator there.
+Implementation:  Currently, the iterator is implemented as a simple array of structs,
+each of which stores information on a particular image region, and an integer index
+that points to an element in the array.  Methods that change the iterator position
+(operator++(), operator--(), operator+=(), operator-=(), GoToBegin(), GoToPosition())
+just change the value of the array index in obvious ways.  Being at the end of the
+list of regions-- being PAST the final region in the list, not AT the final region
+in the list-- is represented by making the array index one greater than the maximal index
+of image regions in the array.  If that's where the iterator is, IsAtEnd() returns true.
+GoToEnd() puts the iterator there.
 Written by Owen Carmichael, January 2007
 
 */
@@ -26,7 +59,7 @@ Written by Owen Carmichael, January 2007
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
-#include "itkRegionOfInterestImageFilter.h" 
+#include "itkRegionOfInterestImageFilter.h"
 #include "itkCollectionOfPatchesIterator.h"
 #include "itkMinimumImageFilter.h"
 #include "itkMaximumImageFilter.h"
@@ -34,12 +67,12 @@ Written by Owen Carmichael, January 2007
 
 namespace itk
 {
-  // The class is templated over the image type of the images to be read from 
+  // The class is templated over the image type of the images to be read from
   // file, as well as the image type for the image regions being returned to the
   // user.  Its parent class, CollectionOfPatchesIterator, is the base class for
   // all iterators that iterate over sets of image regions of interest
 
-  template<typename TInputImage,typename TOutputImage> 
+  template<typename TInputImage,typename TOutputImage>
     class ITK_EXPORT CollectionOfPatchesHandLabeledIterator : public CollectionOfPatchesIterator<TInputImage,TOutputImage>
   {
   public:
@@ -66,20 +99,20 @@ namespace itk
 
       /** Method for creation through the object factory. */
     itkNewMacro(Self);
-    
+
   /** Run-time type information (and related methods). */
   itkTypeMacro(CollectionOfPatchesHandLabeledIterator, CollectionOfPatchesIterator);
 
   void SetImagePath(char *); // This sets the path to the directory with the images and the ground_truth file in it, and reads in the image region descriptions from ground_truth
   void SetCushionPctX(float);  // Sets the amount of padding surrounding the specified image features that should be included in the image region.  The amount of padding is specified as a percentage of the size of the bounding box around the features.  Specifically, if a set of face image features is enclosed in a bounding box going from min_x to max_x in the x direction and min_y to max_y in the y direction, the image region extracted from the image will go from min_x-cushion_pct_x*(max_x-min_x) to max_x+cushion_pct_x*(max_x-min_x) in the x direction and from min_y-cushion_pct_y*(max_y-min_y) to max_y+cushion_pct_y*(max_y-min_y) in the y direction.
   void SetCushionPctY(float); // Sets the amount of padding surrounding the specified image features that should be included in the image region.  The amount of padding is specified as a percentage of the size of the bounding box around the features.  Specifically, if a set of face image features is enclosed in a bounding box going from min_x to max_x in the x direction and min_y to max_y in the y direction, the image region extracted from the image will go from min_x-cushion_pct_x*(max_x-min_x) to max_x+cushion_pct_x*(max_x-min_x) in the x direction and from min_y-cushion_pct_y*(max_y-min_y) to max_y+cushion_pct_y*(max_y-min_y) in the y direction.
-  
+
   int GetNumberOfPatches();  // Returns the number of patches listed in the ground_truth file
   int GetCurrentPatchNum();  // Returns the index of the image patch currently pointed to by the iterator.  The first patch in the ground_truth file has index 0.
 
   float GetCushionPctX();    //  Returns the amount of padding added to an image patch in the X direction, specified as a percentage of patch size in the X direction
   float GetCushionPctY();     //  Returns the amount of padding added to an image patch in the Y direction, specified as a percentage of patch size in the Y direction
-  
+
   virtual SmartPointer<TOutputImage> Get(); // This function reads the current image in from file, extracts the desired image region, and returns a pointer to it.
   virtual void GoToBegin();  // Move the iterator to the first image region in the ground_truth file.
   virtual void GoToEnd();  // Move to the end of the list of regions.
@@ -109,7 +142,7 @@ namespace itk
   int num_patches;  // The number of image regions specified in ground_truth
   int min_patchnum; // The index of the first patch in patches[].  This is always 0 for now...
   int max_patchnum; // The index that is ONE PAST the index of the final patch in patches[].  This is always set to num_patches for now...
-  int current_patchnum; // The index of the current patch in patches[] that the iterator is pointing to.  
+  int current_patchnum; // The index of the current patch in patches[] that the iterator is pointing to.
   bool patches_is_allocated; // True if we have allocated internal storage for the image region descriptions in patches[]
   char ground_truth_filename[1024]; // Name of the file with the image region descriptions in it-- for now, this is always image_path followed by "ground_truth"
   char image_path[1024];  // The path to the directory containing the images and the ground_truth file containing image region descriptions
