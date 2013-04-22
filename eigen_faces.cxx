@@ -55,10 +55,12 @@ typedef itk::CastImageFilter< FloatImageType, InputImageType > Float2IntCasterTy
 // reprojections to image files as it executes.  Comment them out to
 // prevent one or the other type of output from being produced.  Note that
 // printing the repojections can take up a lot of time and disk space...
-#define EIGENFACES_OUTPUT_INPUT_PATCHES 1
-#define EIGENFACES_OUTPUT_RESIZED_PATCHES 1
-#define EIGENFACES_OUTPUT_EIGENFACES 1
-// #define EIGENFACES_OUTPUT_REPROJ 1
+//#define EIGENFACES_OUTPUT_INPUT_PATCHES 1
+//#define EIGENFACES_OUTPUT_RESIZED_PATCHES 1
+//#define EIGENFACES_OUTPUT_EIGENFACES 1
+#define EIGENFACES_OUTPUT_REPROJ 1
+
+#define IMAGE_EXT "png"
 
 int main(int argc,char* argv[]) {
   try {  // This allows the program to catch exceptions thrown by ITK code
@@ -135,6 +137,11 @@ int main(int argc,char* argv[]) {
       // Calling Get() on the iterator is like dereferencing a pointer; it
       // gives you a pointer to the current image patch.
 
+
+
+
+      patchesIt->SetCushionPctX( 0.8 );
+      patchesIt->SetCushionPctY( 0.8 );
       FloatImageType::Pointer current_patch=patchesIt->Get();
 
 #ifdef EIGENFACES_OUTPUT_INPUT_PATCHES
@@ -145,7 +152,7 @@ int main(int argc,char* argv[]) {
       f2icaster->SetInput ( rescaler->GetOutput() );
       inputImageWriter->SetInput( f2icaster->GetOutput() );
       char original_patch_filename[1024];
-      sprintf(original_patch_filename,"out/original_patch%03d.tif",patchesIt->GetCurrentPatchNum());
+      sprintf(original_patch_filename,"out/original_patch%03d.%s",patchesIt->GetCurrentPatchNum(), IMAGE_EXT );
       inputImageWriter->SetFileName(original_patch_filename );
       inputImageWriter->Update();
 #endif // #ifdef EIGENFACES_OUTPUT_INPUT_PATCHES
@@ -187,7 +194,7 @@ int main(int argc,char* argv[]) {
       f2icaster->SetInput ( rescaler->GetOutput() );
       inputImageWriter->SetInput( f2icaster->GetOutput() );
       char resized_patch_filename[1024];
-      sprintf(resized_patch_filename,"out/resized_patch%03d.tif",patchesIt->GetCurrentPatchNum());
+      sprintf(resized_patch_filename,"out/resized_patch%03d.%s",patchesIt->GetCurrentPatchNum(), IMAGE_EXT );
       inputImageWriter->SetFileName( resized_patch_filename );
       inputImageWriter->Update();
 #endif //  #ifdef EIGENFACES_OUTPUT_RESIZED_PATCHES
@@ -243,7 +250,7 @@ int main(int argc,char* argv[]) {
     rescaler->SetOutputMinimum( 0 );    rescaler->SetOutputMaximum( 255 );
     f2icaster->SetInput ( rescaler->GetOutput() );
     inputImageWriter->SetInput( f2icaster->GetOutput() );
-    sprintf(eigenface_filename,"out/eigen_out%03d.tif",i);
+    sprintf(eigenface_filename,"out/eigen_out%03d.%s",i, IMAGE_EXT );
     inputImageWriter->SetFileName( eigenface_filename );
     inputImageWriter->Update();
   }
@@ -334,9 +341,13 @@ int main(int argc,char* argv[]) {
     rescaler->SetOutputMinimum( 0 );    rescaler->SetOutputMaximum( 255 );
     f2icaster->SetInput ( rescaler->GetOutput() );
     inputImageWriter->SetInput( f2icaster->GetOutput() );
-    sprintf(reproj_filename,"out/reproj.%03d.%03d.tif",i,0);
+    sprintf(reproj_filename,"out/reproj.%03d.%03d.%s",i,0, IMAGE_EXT );
     inputImageWriter->SetFileName( reproj_filename );
-    inputImageWriter->Update();
+
+    if( i == 8 || i == 14 )
+    {
+        inputImageWriter->Update();
+    }
 
     // write reprojection estimate with 1 eigenface
     rescaler->SetInput( imageAdder->GetOutput() );
@@ -344,9 +355,12 @@ int main(int argc,char* argv[]) {
     f2icaster->SetInput ( rescaler->GetOutput() );
     inputImageWriter->SetInput( f2icaster->GetOutput() );
 
-    sprintf(reproj_filename,"out/reproj.%03d.%03d.tif",i,1);
+    sprintf(reproj_filename,"out/reproj.%03d.%03d.%s",i,1, IMAGE_EXT );
     inputImageWriter->SetFileName( reproj_filename );
-    inputImageWriter->Update();
+    if( i == 8 || i == 14 )
+    {
+        inputImageWriter->Update();
+    }
 #endif
 
     duplicator->SetInputImage( imageAdder->GetOutput() );
@@ -379,9 +393,12 @@ int main(int argc,char* argv[]) {
       rescaler->SetOutputMinimum( 0 );    rescaler->SetOutputMaximum( 255 );
       f2icaster->SetInput ( rescaler->GetOutput() );
       inputImageWriter->SetInput( f2icaster->GetOutput() );
-      sprintf(reproj_filename,"out/reproj.%03d.%03d.tif",i,j+1);
+      sprintf(reproj_filename,"out/reproj.%03d.%03d.%s",i,j+1, IMAGE_EXT );
       inputImageWriter->SetFileName( reproj_filename );
-      inputImageWriter->Update();
+      if( ( j % 10 == 0 ) && ( i == 8 || i == 14 ) )
+      {
+          inputImageWriter->Update();
+      }
 #endif // #ifdef EIGENFACES_OUTPUT_REPROJ
       // add squared difference for this image to the sum over all images:
       reproj_error[j]+=statsCalculator->GetSum();
