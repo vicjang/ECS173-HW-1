@@ -223,6 +223,63 @@ namespace itk
     origin[0]=0; origin[1]=0;
     patch_image->SetOrigin( origin );
 
+
+    // Do face recognition
+    static int iterationNum = 0;
+    typedef itk::Image<double, 2>  ImageType;
+
+    ImageType::Pointer image = patch_image;
+
+    ImageType::SizeType regionSize;
+    regionSize[0] = patch_size[0] / 3;
+    regionSize[1] = patch_size[1] / 5;
+
+    ImageType::IndexType regionIndex;
+    regionIndex[0] = pi.left_eye_x * patch_size[0] / image_size[0];
+    regionIndex[1] = pi.left_eye_y * patch_size[1] / image_size[1];
+
+    if( regionSize[0] + regionIndex[0] > patch_size[0] )
+    {
+        regionSize[0] = patch_size[0] - regionIndex[0] - 1;
+    }
+    if( regionSize[1] + regionIndex[1] > patch_size[1] )
+    {
+        regionSize[1] = patch_size[1] - regionIndex[1] - 1;
+    }
+
+    ImageType::RegionType region;
+    region.SetSize(regionSize);
+    region.SetIndex(regionIndex);
+
+    itk::ImageRegionIterator<ImageType> imageIterator(image,region);
+
+    int maxValue = 0;
+    int minValue = 255;
+    while(!imageIterator.IsAtEnd())
+    {
+        int current = imageIterator.Value();
+        if( current > maxValue )
+        {
+            maxValue = current;
+        }
+        if( current < minValue )
+        {
+            minValue = current;
+        }
+        ++imageIterator;
+    }
+    // Done face recognition.
+
+    // The face recognition method calculates the maximum difference of the pixel intensities
+    // of the left eye in the patch. When the difference is lower than a threshold value,
+    // the image is considered to be Not a face.
+
+    // The value 30 was found by observation through my eyes
+    if( maxValue - minValue < 30 )
+    {
+        return NULL;
+    }
+
     return patch_image;
   }
 

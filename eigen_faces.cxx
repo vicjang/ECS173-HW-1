@@ -77,6 +77,7 @@ int main(int argc,char* argv[]) {
     PCAEstimatorType::Pointer pcaEstimator = PCAEstimatorType::New();
 
     // create output folder
+    system( "rm -rf out/" );
     system( "mkdir out" );
 
 
@@ -131,11 +132,23 @@ int main(int argc,char* argv[]) {
     Float2IntCasterType::Pointer f2icaster = Float2IntCasterType::New();
     InputImageWriterType::Pointer inputImageWriter = InputImageWriterType::New();
 
+    int numberOfRemovedPatches = 0;
     // Loop through all of the patches described in the ground truth file:
 
     for(patchesIt->GoToBegin();!patchesIt->IsAtEnd();++(*patchesIt)) {
       // Calling Get() on the iterator is like dereferencing a pointer; it
       // gives you a pointer to the current image patch.
+
+      if( NULL == patchesIt->Get() )
+      {
+          // update the number of removed patches
+          numberOfRemovedPatches++;
+          // upadte the total number of patches because the estimator will need to be informed of the change
+          num_patches--;
+
+          // skip this iteration because this patch was decided to be skipped
+          continue;
+      }
 
       FloatImageType::Pointer current_patch=patchesIt->Get();
 
@@ -217,8 +230,18 @@ int main(int argc,char* argv[]) {
       //  ImagePatchDuplicator output buffer goes away, and the number of
       //  references to the ImagePatchDuplicator output buffer is decremented
       //  to 0, triggering its deallocation.
-      pcaEstimator->SetInput( patchesIt->GetCurrentPatchNum() , dup->GetOutput() );
+
+//      pcaEstimator->SetInput( patchesIt->GetCurrentPatchNum() , dup->GetOutput() );
+      // modify the patch number because some of the patches have been skipped
+      pcaEstimator->SetInput( patchesIt->GetCurrentPatchNum() - numberOfRemovedPatches, dup->GetOutput() );
+
     }
+
+    // Redo the estimator setting with updated values
+    pcaEstimator->SetNumberOfTrainingImages( num_patches );
+    pcaEstimator->SetNumberOfPrincipalComponentsRequired( f2icast(fmin(num_patches,eigenimage_size_x*eigenimage_size_y)) );
+
+    std::cout << numberOfRemovedPatches << " patches skipped based on my face recognition algorithm" << std::endl;
 
     //  Inputs to the PCAEstimator were set up in the previous for loop, so we
     //  just need to call Update() to get it to compute the principal components
