@@ -29,11 +29,11 @@ Written by Owen Carmichael, January 2007
 namespace itk
 {
 
-  // The default constructor sets internal variables to obvious defaults and 
+  // The default constructor sets internal variables to obvious defaults and
   // allocates the ImageFileReader and RegionOfInterest filter.  The default
   // padding around the face features is 20% in both directions.
 
-  template<class TInputImage,class TOutputImage>	
+  template<class TInputImage,class TOutputImage>
   CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::CollectionOfPatchesHandLabeledIterator() {
     patches=NULL;
     num_patches=0;
@@ -46,12 +46,12 @@ namespace itk
     sprintf(image_path,".");
     cushion_pct_x=.20;    cushion_pct_y=.20;
   }
-  
+
   // This internal function reads the image region descriptions in the ground_truth file and stores the image regions in the patches[] data structure.  It allocates patches[] as needed.  It is called by SetImagePath().
 
-  template<class TInputImage,class TOutputImage>	
+  template<class TInputImage,class TOutputImage>
   void CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::ReadGroundTruthFile() {
-    
+
     std::ifstream ground_truth_file;
     ground_truth_file.open(ground_truth_filename, std::ios::in);
 
@@ -68,7 +68,7 @@ namespace itk
         exception.SetLocation(loc);
         throw exception;
       }
-    
+
     // The first line of the ground truth file tells us how many patches are in it:
 
     ground_truth_file >> num_patches;
@@ -92,7 +92,7 @@ namespace itk
     // Allocate storage for the image region descriptions:
     patches=new patch_info[num_patches];
     patches_is_allocated=true;
-    
+
     // These are the array indices for the start and end of the iterator:
     min_patchnum=0;  max_patchnum=num_patches;
 
@@ -104,7 +104,7 @@ namespace itk
       // print out our progress every 10 lines:
       if (patch_counter%10==0) { std::cout << patch_counter << " ";  std::cout.flush(); }
       // Throw an exception if the file has more regions in it than it said in the first line:
-      if (patch_counter>num_patches) { 
+      if (patch_counter>num_patches) {
         itk::ExceptionObject exception(__FILE__, __LINE__);
         char msg[1024];
         sprintf(msg,"File %s claimed to have %d entries but appears to have more than that",ground_truth_filename,num_patches);
@@ -120,24 +120,24 @@ namespace itk
       std::string image_filename;
       ground_truth_file >> image_filename;
       strcpy(patches[patch_counter].image_filename,image_filename.c_str());
-      ground_truth_file >> patches[patch_counter].left_eye_x; 
-      ground_truth_file >> patches[patch_counter].left_eye_y; 
-      ground_truth_file >> patches[patch_counter].right_eye_x;  
+      ground_truth_file >> patches[patch_counter].left_eye_x;
+      ground_truth_file >> patches[patch_counter].left_eye_y;
+      ground_truth_file >> patches[patch_counter].right_eye_x;
       ground_truth_file >> patches[patch_counter].right_eye_y;
-      ground_truth_file >> patches[patch_counter].nose_x;       
-      ground_truth_file >> patches[patch_counter].nose_y;   
+      ground_truth_file >> patches[patch_counter].nose_x;
+      ground_truth_file >> patches[patch_counter].nose_y;
       ground_truth_file >> patches[patch_counter].left_corner_mouth_x;
       ground_truth_file >> patches[patch_counter].left_corner_mouth_y;
-      ground_truth_file >> patches[patch_counter].center_mouth_x; 
-      ground_truth_file >> patches[patch_counter].center_mouth_y; 
-      ground_truth_file >> patches[patch_counter].right_corner_mouth_x; 
+      ground_truth_file >> patches[patch_counter].center_mouth_x;
+      ground_truth_file >> patches[patch_counter].center_mouth_y;
+      ground_truth_file >> patches[patch_counter].right_corner_mouth_x;
       ground_truth_file >> patches[patch_counter].right_corner_mouth_y;
       patch_counter++;
     }
     std::cout << num_patches << " done" << std::endl; std::cout.flush();
 
     // Throw an exception if the first line in the file told us there were num_patches patches, but there were fewer than that many listed in the file.
-    if (patch_counter<num_patches) { 
+    if (patch_counter<num_patches) {
       itk::ExceptionObject exception(__FILE__, __LINE__);
       char msg[1024];
       sprintf(msg,"CollectionOfPatchesHandLabeledIterator::CollectionOfPatchesHandLabeledIterator(char *):  File %s claimed to have %d entries but appears to only have %d",ground_truth_filename,num_patches,patch_counter-1);
@@ -149,14 +149,14 @@ namespace itk
 
   //  The destructor just deallocates patches[] if it has been allocated.
 
-  template<class TInputImage,class TOutputImage>	
+  template<class TInputImage,class TOutputImage>
   CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::~CollectionOfPatchesHandLabeledIterator() {
     if (patches_is_allocated) { delete patches; }
   }
 
   // Get() opens the currently-pointed-to image, extracts the requested region, and returns it.
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   SmartPointer<TOutputImage>  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::Get() {
 
     // Make sure the patches[] data structure is allocated and the iterator actually points to a patch.  Note that this is a little different than the iterator being at a valid position, because the end of the array-- one past the last element-- is a valid position but there are no patches there.
@@ -184,8 +184,8 @@ namespace itk
     float max_x=fmax(fmax(fmax(pi.left_eye_x,pi.right_eye_x),fmax(pi.nose_x,pi.left_corner_mouth_x)),fmax(pi.center_mouth_x,pi.right_corner_mouth_x));
     float min_y=fmin(fmin(fmin(pi.left_eye_y,pi.right_eye_y),fmin(pi.nose_y,pi.left_corner_mouth_y)),fmin(pi.center_mouth_y,pi.right_corner_mouth_y));
     float max_y=fmax(fmax(fmax(pi.left_eye_y,pi.right_eye_y),fmax(pi.nose_y,pi.left_corner_mouth_y)),fmax(pi.center_mouth_y,pi.right_corner_mouth_y));
-  
-    // Calculate how many pixels of buffer to add around the periphery of the bounding box: 
+
+    // Calculate how many pixels of buffer to add around the periphery of the bounding box:
 
     float cushion_x=cushion_pct_x*(max_x-min_x);    float cushion_y=cushion_pct_y*(max_y-min_y);
 
@@ -194,11 +194,11 @@ namespace itk
     IndexType patch_start;
     patch_start[0] = f2icast(fmax(min_x-cushion_x,0));
     patch_start[1] = f2icast(fmax(min_y-cushion_y,0));
-    SizeType patch_size;    
+    SizeType patch_size;
     patch_size[0] = f2icast(fmin(max_x-min_x + 2*cushion_x,image_size[0]-min_x));
-    patch_size[1] = f2icast(fmin(max_y-min_y + 2*cushion_y,image_size[1]-min_y));  
+    patch_size[1] = f2icast(fmin(max_y-min_y + 2*cushion_y,image_size[1]-min_y));
 
-    // Set the output of the ImageFileReader as the input to the RegionOfInterest filter: 
+    // Set the output of the ImageFileReader as the input to the RegionOfInterest filter:
 
     patchExtractor->SetInput( imageReader->GetOutput() );
 
@@ -227,35 +227,35 @@ namespace itk
   }
 
   // Set the current patch index to the first one in the array:
-  template<class TInputImage,class TOutputImage> 
-  void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GoToBegin() { 
+  template<class TInputImage,class TOutputImage>
+  void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GoToBegin() {
     //    Make sure patches[] is allocated
-    AssertAllocated(); 
+    AssertAllocated();
     current_patchnum=min_patchnum;
   }
 
   // Set the current patch index to ONE PAST the last one in the array:
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GoToEnd() {
     //    Make sure patches[] is allocated
-    AssertAllocated(); 
+    AssertAllocated();
     current_patchnum=max_patchnum;
   }
 
   // True if the current patch index is one past the last one in the array:
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   bool  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::IsAtEnd() {
     //    Make sure patches[] is allocated and the array index is at a valid position
-    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("IsAtEnd()")); 
+    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("IsAtEnd()"));
     return current_patchnum==max_patchnum;
   }
 
   // True if the current patch index is at the first one in the array:
 
-  template<class TInputImage,class TOutputImage> 
-  bool  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::IsAtBegin() { 
+  template<class TInputImage,class TOutputImage>
+  bool  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::IsAtBegin() {
     //    Make sure patches[] is allocated and the array index is at a valid position
     AssertAllocated();  AssertValidPosition(current_patchnum,std::string("IsAtBegin()"));
     return current_patchnum==min_patchnum;
@@ -263,11 +263,11 @@ namespace itk
 
   // Increments the region index to point to the next one in the array
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::operator++() {
     //    Make sure patches[] is allocated and the array index is at a valid position
-    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator++()")); 
-    if (IsAtEnd()) {      
+    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator++()"));
+    if (IsAtEnd()) {
       itk::ExceptionObject exception(__FILE__, __LINE__);
       char msg[1024];
       sprintf(msg,"CollectionOfPatchesHandLabeledIterator::operator++():  Iterator is already at the end.");
@@ -276,10 +276,10 @@ namespace itk
     }
     current_patchnum++;
   }
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::operator--() {
     //    Make sure patches[] is allocated and the array index is at a valid position
-    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator--()")); 
+    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator--()"));
     if (IsAtBegin()) {
       itk::ExceptionObject exception(__FILE__, __LINE__);
       char msg[1024];
@@ -289,32 +289,32 @@ namespace itk
     }
     current_patchnum--;
   }
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::operator+=(int increment) {
     //    Make sure patches[] is allocated and the array index is at a valid position
     AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator+=()"));
-    AssertValidPosition(current_patchnum+increment,std::string("operator+=()")); 
+    AssertValidPosition(current_patchnum+increment,std::string("operator+=()"));
     current_patchnum+=increment;
   }
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::operator-=(int increment) {
     //    Make sure patches[] is allocated and the array index is at a valid position
-    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator-=()")); 
-    AssertValidPosition(current_patchnum-increment,std::string("operator-=()")); 
+    AssertAllocated();  AssertValidPosition(current_patchnum,std::string("operator-=()"));
+    AssertValidPosition(current_patchnum-increment,std::string("operator-=()"));
     current_patchnum-=increment;
   }
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::SetPosition( int new_patchnum) {
     //    Make sure patches[] is allocated and the array index is at a valid position
     AssertAllocated();  AssertValidPosition(new_patchnum,std::string("SetPosition( int )"));
     current_patchnum=new_patchnum;
   }
-  
+
   // Throw an exception if patches[] is not allocated:
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::AssertAllocated() {
     if (!patches_is_allocated) {
       itk::ExceptionObject exception(__FILE__, __LINE__);
@@ -330,8 +330,8 @@ namespace itk
 
   // Throw an exception if the iterator is not set to a valid position:
 
-  template<class TInputImage,class TOutputImage> 
-  void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::AssertValidPosition(int pos,std::string fname) { 
+  template<class TInputImage,class TOutputImage>
+  void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::AssertValidPosition(int pos,std::string fname) {
     if (!(pos <= max_patchnum && pos>=min_patchnum)) {
       itk::ExceptionObject exception(__FILE__, __LINE__);
       char msg[1024];
@@ -346,8 +346,8 @@ namespace itk
 
   // Throw an exception if the iterator is not set to point to an image region
 
-  template<class TInputImage,class TOutputImage> 
-  void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::AssertPatchPosition(int pos,std::string fname) { 
+  template<class TInputImage,class TOutputImage>
+  void  CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::AssertPatchPosition(int pos,std::string fname) {
     if (!(pos < max_patchnum && pos>=min_patchnum)) {
       itk::ExceptionObject exception(__FILE__, __LINE__);
       char msg[1024];
@@ -360,19 +360,19 @@ namespace itk
     }
   }
 
-  // Specify the path to the images and ground_truth file.  This triggers the 
+  // Specify the path to the images and ground_truth file.  This triggers the
   // reading of the ground_truth file so that image region information is stored in memory.
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   void CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::SetImagePath(char *new_image_path) {
 
     // Make sure the specified path is valid:
 
     if (new_image_path==NULL) {
-      ExceptionObject  e(__FILE__, __LINE__); 
+      ExceptionObject  e(__FILE__, __LINE__);
       e.SetLocation("CollectionOfPatchesHandLabeledIterator::SetImagePath(char *)");
-      e.SetDescription("Image path is NULL"); 
-      throw e; 
+      e.SetDescription("Image path is NULL");
+      throw e;
     }
     strcpy(image_path,new_image_path);
     sprintf(ground_truth_filename,"%s/%s",image_path,"ground_truth");
@@ -388,7 +388,7 @@ namespace itk
 
   // Return how many image regions are in the ground_truth file
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   int CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GetNumberOfPatches() {
     //    Make sure patches[] is allocated
     AssertAllocated();
@@ -397,7 +397,7 @@ namespace itk
 
   // Get the index of the current patch
 
-  template<class TInputImage,class TOutputImage> 
+  template<class TInputImage,class TOutputImage>
   int CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GetCurrentPatchNum() {
     //    Make sure patches[] is allocated and the array index is at a valid position
     AssertAllocated();  AssertValidPosition(current_patchnum,"GetCurrentPatchNum");
@@ -406,37 +406,37 @@ namespace itk
 
   // Get the padding percentage in the X direction
 
-  template<class TInputImage,class TOutputImage> 
-  float CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GetCushionPctX() 
+  template<class TInputImage,class TOutputImage>
+  float CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GetCushionPctX()
   {
     return cushion_pct_x;
   }
 
   // Get the padding percentage in the Y direction
 
-  template<class TInputImage,class TOutputImage> 
-  float CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GetCushionPctY() 
+  template<class TInputImage,class TOutputImage>
+  float CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::GetCushionPctY()
   {
     return cushion_pct_y;
   }
 
   // Set the padding around the region bounding box in the X direction:
 
-  template<class TInputImage,class TOutputImage> 
-  void CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::SetCushionPctX(float cpx) 
+  template<class TInputImage,class TOutputImage>
+  void CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::SetCushionPctX(float cpx)
   {
     cushion_pct_x=cpx;
   }
 
   // Set the padding around the region bounding box in the Y direction:
 
-  template<class TInputImage,class TOutputImage> 
-  void CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::SetCushionPctY(float cpy) 
+  template<class TInputImage,class TOutputImage>
+  void CollectionOfPatchesHandLabeledIterator<TInputImage,TOutputImage>::SetCushionPctY(float cpy)
   {
      cushion_pct_y=cpy;
   }
-} 
- 
+}
+
 #endif  // #ifndef _itkCollectionOfPatchesHandLabeledIterator_txx
 
 
