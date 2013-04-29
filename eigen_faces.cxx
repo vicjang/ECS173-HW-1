@@ -27,6 +27,8 @@ Written by Owen Carmichael, January 2007
 #include "itkCollectionOfPatchesHandLabeledIterator.h"
 #include "itkAffineTransform.h"
 
+#include "itkGradientAnisotropicDiffusionImageFilter.h"
+
 // Convenience typedefs for ITK classes:
 typedef unsigned char PixelType;
 typedef double FloatPixelType;
@@ -50,12 +52,15 @@ typedef itk::RescaleIntensityImageFilter<FloatImageType,FloatImageType> Intensit
 typedef itk::ImageFileWriter< InputImageType > InputImageWriterType;
 typedef itk::CastImageFilter< FloatImageType, InputImageType > Float2IntCasterType;
 
+typedef itk::GradientAnisotropicDiffusionImageFilter< FloatImageType, FloatImageType > AnisotropicFilterType;
+
 // Use these #defines to control whether or not the program prints out the
 // original image patches, the resized image patches, the eigenfaces, and the
 // reprojections to image files as it executes.  Comment them out to
 // prevent one or the other type of output from being produced.  Note that
 // printing the repojections can take up a lot of time and disk space...
 #define EIGENFACES_OUTPUT_INPUT_PATCHES 1
+#define EIGENFACES_OUTPUT_FILTERED_PATCHES 1
 #define EIGENFACES_OUTPUT_RESIZED_PATCHES 1
 #define EIGENFACES_OUTPUT_EIGENFACES 1
 //#define EIGENFACES_OUTPUT_REPROJ 1
@@ -131,6 +136,9 @@ int main(int argc,char* argv[]) {
     Float2IntCasterType::Pointer f2icaster = Float2IntCasterType::New();
     InputImageWriterType::Pointer inputImageWriter = InputImageWriterType::New();
 
+    // filter
+    AnisotropicFilterType::Pointer imageFilter = AnisotropicFilterType::New();
+
     // Loop through all of the patches described in the ground truth file:
 
     for(patchesIt->GoToBegin();!patchesIt->IsAtEnd();++(*patchesIt)) {
@@ -177,6 +185,23 @@ int main(int argc,char* argv[]) {
 
       patchResampler->Update();
 
+
+
+#ifdef EIGENFACES_OUTPUT_FILTERED_PATCHES
+      // Your code here for Part 2
+      imageFilter->SetInput( patchResampler->GetOutput() );
+      imageFilter->SetNumberOfIterations( 3 );
+      imageFilter->SetTimeStep( 0.125 );
+      imageFilter->SetConductanceParameter( 3 );
+      f2icaster->SetInput ( imageFilter->GetOutput() );
+      inputImageWriter->SetInput( f2icaster->GetOutput() );
+      char filtered_filename[256];
+      sprintf(original_patch_filename,"out/filtered_patch%03d.%s", patchesIt->GetCurrentPatchNum(), IMAGE_EXT );
+      inputImageWriter->SetFileName(original_patch_filename );
+      inputImageWriter->Update();
+#endif
+
+
  #ifdef EIGENFACES_OUTPUT_RESIZED_PATCHES
       // This code writes the resized patch out to a file called patchX.tif,
       //  where this is the X'th patch in the ground_truth file.  First the
@@ -184,7 +209,8 @@ int main(int argc,char* argv[]) {
       //  IntensityRescaler, then cast to an integer data type, then written
       // out to file by the ImageWriter.
 
-      rescaler->SetInput( patchResampler->GetOutput() );
+      // Replace the original output with the new output through my filter
+      rescaler->SetInput( imageFilter->GetOutput() );
       rescaler->SetOutputMinimum( 0 );    rescaler->SetOutputMaximum( 255 );
       f2icaster->SetInput ( rescaler->GetOutput() );
       inputImageWriter->SetInput( f2icaster->GetOutput() );
@@ -201,8 +227,9 @@ int main(int argc,char* argv[]) {
       //  resized image patch.
       ImagePatchDuplicatorType::Pointer dup = ImagePatchDuplicatorType::New();
 
-      dup->SetInputImage( patchResampler->GetOutput() );
-          dup->Update();
+      // Replace the original output with the new output through my filter
+      dup->SetInputImage( imageFilter->GetOutput() );
+      dup->Update();
 
       //  It might seem odd to allocate a new
       //  ImagePatchDuplicator in the middle of the for loop: won't we lose
